@@ -46,10 +46,10 @@
     <fullyQualifiedTypeName name="com.example.demo.repository.ProjectTaskRepository"/>
     <fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Autowired"/>
     <fullyQualifiedTypeName name="com.example.demo.domain.Backlog"/>
-    <fullyQualifiedTypeName name="com.example.demo.domain.ProjectStatus"/>
     <fullyQualifiedTypeName name="com.example.demo.service.ProjectTaskService"/>
     <fullyQualifiedTypeName name="com.example.demo.domain.ProjectTask"/>
     <fullyQualifiedTypeName name="org.springframework.web.bind.annotation.PathVariable"/>
     <fullyQualifiedTypeName name="com.fasterxml.jackson.annotation.JsonIgnore"/>
     <fullyQualifiedTypeName name="org.springframework.web.bind.annotation.PatchMapping"/>
+    <fullyQualifiedTypeName name="com.example.demo.domain.ProjectStatus"/>
 </qualifiedTypeNameHistroy>

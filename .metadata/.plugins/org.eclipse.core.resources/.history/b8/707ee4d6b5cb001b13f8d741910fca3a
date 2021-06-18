@@ -1,0 +1,11 @@
+package com.example.demo.domain;
+
+public enum ProjectStatus {
+	TO_DO(1, "To Do"),
+	IN_PROGRESS(2, "In Progress"),
+	COMPLETE(3, "Complete");
+
+	ProjectStatus(int i, String string) {
+		// TODO Auto-generated constructor stub
+	}
+}

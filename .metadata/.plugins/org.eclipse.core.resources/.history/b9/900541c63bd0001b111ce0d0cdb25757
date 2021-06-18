@@ -1,0 +1,114 @@
+package com.example.demo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.domain.Backlog;
+import com.example.demo.domain.Project;
+import com.example.demo.domain.ProjectStatus;
+import com.example.demo.domain.ProjectTask;
+import com.example.demo.exception.ProjectIdException;
+import com.example.demo.repository.BacklogRepository;
+import com.example.demo.repository.ProjectRepository;
+import com.example.demo.repository.ProjectTaskRepository;
+
+@Service
+public class ProjectTaskService {
+	@Autowired
+	private BacklogRepository backlogRepo;
+	@Autowired
+	private ProjectTaskRepository projectTaskRepo;
+	@Autowired
+	private ProjectRepository projectRepo;
+	
+	public ProjectTask addProjectTask(String projectIdentifier, ProjectTask projectTask) {
+		//PTs to be added to a specific project; project !=null and backlog exists
+		Backlog backlog = backlogRepo.findByProjectIdentifier(projectIdentifier);
+    	try{
+    		//Project project = projectRepo.findByProjectIdentifier(projectIdentifier);
+    		//set the backlog to PT
+    		projectTask.setBacklog(backlog);
+    		//We want our project sequence to be like this: PROJ0-1, PROJ0-2...and persist the sequence even when a PT is deleted
+    		Integer BacklogSequence = backlog.getPTSequence();
+    		//Update the BL
+    		BacklogSequence++;
+    		backlog.setPTSequence(BacklogSequence);
+    		//Add sequence to project task
+            projectTask.setProjectSequence(projectIdentifier+"-"+BacklogSequence);
+            projectTask.setProjectIdentifier(projectIdentifier);
+    		//Initialize priority when it's null
+            if(projectTask.getPriority()==0 || projectTask.getPriority()==null) {
+            	projectTask.setPriority(3);
+            }
+    		//Initialize status when null
+            if(projectTask.getStatus()==null){
+                projectTask.setStatus(ProjectStatus.TO_DO);
+            }
+    		return projectTaskRepo.save(projectTask);
+    	}
+    	catch(Exception e) {
+    		throw new ProjectIdException("Project identifier "+projectIdentifier.toUpperCase()+" dosen't exist!"); 		
+    	}     
+	}
+
+	public List<ProjectTask> findBacklogById(String backlog_id) {
+		try {
+			Project project = projectRepo.findByProjectIdentifier(backlog_id);
+			try {
+				List<ProjectTask> allProjectTasks = projectTaskRepo.findByProjectIdentifierOrderByPriority(backlog_id);
+				if(!allProjectTasks.isEmpty()) {
+					return allProjectTasks;	
+					
+				}
+				throw new ProjectIdException("There is no task in the project "+project.getProjectIdentifier().toUpperCase());			
+			}
+			catch(Exception e) {
+				throw new ProjectIdException("There is no task in this project!");
+			}
+		}
+		catch(Exception e) {
+			throw new ProjectIdException("Project identifier "+backlog_id.toUpperCase()+" dosen't exist!");
+		}
+		
+	}
+	
+//    public Iterable<ProjectTask>findBacklogById(String id){
+//        return projectTaskRepo.findByProjectIdentifierOrderByPriority(id);
+//    }
+	
+	public ProjectTask findProjectTaskBySequence(String backlog_id, String sequence) {
+		Backlog backlog = backlogRepo.findByProjectIdentifier(backlog_id);
+		if(backlog == null) {
+			throw new ProjectIdException("Project with identifier "+backlog_id.toUpperCase() + " doen't exist!");
+		}
+    	ProjectTask projectTask = projectTaskRepo.findByProjectSequence(sequence);
+    	if(projectTask==null) {
+    		//throw new ProjectIdException("Project sequence "+projectTask.getProjectIdentifier().toUpperCase()+" doen't exist!");
+    		throw new ProjectIdException("Project task with sequence "+sequence.toUpperCase() + " doen't exist!");
+    	}
+    	if(!projectTask.getProjectIdentifier().equals(backlog_id.toUpperCase())) {
+    		//throw new ProjectIdException("Project sequence "+projectTask.getProjectIdentifier().toUpperCase()+" doen't exist!");
+    		throw new ProjectIdException("Project task with sequence "+sequence.toUpperCase() + " doen't belong to project "+backlog_id.toUpperCase()+"!");
+    	}
+    	else {
+    		return projectTask;
+    	}
+	}
+	
+    public ProjectTask updateProjectTask(ProjectTask updatedProjectTask, String backlog_id, String sequence){
+    	ProjectTask projectTask = findProjectTaskBySequence(backlog_id, sequence);
+    	projectTask = updatedProjectTask;
+    	return projectTaskRepo.save(projectTask);
+    }
+
+    public void deleteProjectTask(String backlog_id, String sequence) {
+    	ProjectTask projectTask = findProjectTaskBySequence(backlog_id, sequence);
+    	projectTaskRepo.delete(projectTask);
+    }
+//    public void deleteProjectTask(ProjectTask projectTask) {
+//    	//ProjectTask projectTask = findProjectTaskBySequence(backlog_id, sequence);
+//    	projectTaskRepo.delete(projectTask);
+//    }
+}
